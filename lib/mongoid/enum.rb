@@ -87,8 +87,8 @@ module Mongoid
 
       def define_string_accessor(field_name, value, options)
         prefix = options[:_prefix] ? "#{field_name}_" : ''
-        class_eval "def #{prefix+value}?() self.#{field_name} == :#{value} end"
-        class_eval "def #{prefix+value}!() update_attributes! :#{field_name} => :#{value} end"
+        class_eval "def #{prefix+value}?() self.#{field_name} == :'#{value}' end"
+        class_eval "def #{prefix+value}!() update_attributes! :#{field_name} => :'#{value}' end"
       end
     end
   end
