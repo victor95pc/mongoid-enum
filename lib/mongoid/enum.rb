@@ -26,7 +26,8 @@ module Mongoid
           :multiple => false,
           :default  => values.first,
           :required => true,
-          :validate => true
+          :validate => true,
+          :_prefix  => false
         }
       end
 
@@ -51,12 +52,12 @@ module Mongoid
 
       def define_value_scopes_and_accessors(field_name, values, options)
         values.each do |value|
-          scope value, ->{ where(field_name => value) }
+          scope options[:_prefix] ? "#{field_name}_#{value}" : value, ->{ where(field_name => value) }
 
           if options[:multiple]
             define_array_accessor(field_name, value)
           else
-            define_string_accessor(field_name, value)
+            define_string_accessor(field_name, value, options)
           end
         end
       end
@@ -84,9 +85,10 @@ module Mongoid
         class_eval "def #{value}!() update_attributes! :#{field_name} => (self.#{field_name} || []) + [:#{value}] end"
       end
 
-      def define_string_accessor(field_name, value)
-        class_eval "def #{value}?() self.#{field_name} == :#{value} end"
-        class_eval "def #{value}!() update_attributes! :#{field_name} => :#{value} end"
+      def define_string_accessor(field_name, value, options)
+        prefix = options[:_prefix] ? "#{field_name}_" : ''
+        class_eval "def #{prefix+value}?() self.#{field_name} == :#{value} end"
+        class_eval "def #{prefix+value}!() update_attributes! :#{field_name} => :#{value} end"
       end
     end
   end
